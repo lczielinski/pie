@@ -1,0 +1,145 @@
+#lang pie
+
+(claim Maybe
+  (-> U
+      U))
+(define Maybe
+  (λ (X)
+    (Either X Trivial)))
+
+(claim nothing
+  (∏ ((E U))
+    (Maybe E)))
+(define nothing
+  (λ (E)
+    (right sole)))
+
+(claim just
+  (∏ ((E U))
+    (-> E
+        (Maybe E))))
+(define just
+  (λ (E e)
+    (left e)))
+
+(claim maybe-head
+  (∏ ((E U))
+    (-> (List E)
+        (Maybe E))))
+(define maybe-head
+  (λ (E es)
+    (rec-List es
+      (nothing E)
+      (λ (hd tl head_tl)
+        (just E hd)))))
+
+(claim maybe-tail
+  (∏ ((E U))
+    (-> (List E)
+        (Maybe (List E)))))
+(define maybe-tail
+  (λ (E es)
+    (rec-List es
+      (nothing (List E))
+      (λ (hd tl tail_tl)
+        (just (List E) tl)))))
+
+(claim list-ref
+  (∏ ((E U))
+    (-> Nat (List E)
+        (Maybe E))))
+(claim step-list-ref
+  (∏ ((E U))
+    (-> Nat
+        (-> (List E)
+          (Maybe E))
+      (-> (List E)
+        (Maybe E)))))
+(define step-list-ref
+  (λ (E)
+    (λ (n-1 list-ref_n-1)
+      (λ (es)
+        (ind-Either (maybe-tail E es)
+          (λ (maybe_tl)
+            (Maybe E))
+          (λ (tl)
+            (list-ref_n-1 tl))
+          (λ (empty)
+            (nothing E)))))))
+(define list-ref
+  (λ (E n)
+    (rec-Nat n
+      (maybe-head E)
+      (step-list-ref E))))
+
+(claim similarly-absurd
+  (-> Absurd
+      Absurd))
+(define similarly-absurd
+  (λ (x)
+    x))
+
+(claim Fin
+  (-> Nat
+      U))
+(define Fin
+  (λ (n)
+    (iter-Nat n
+      Absurd
+      Maybe)))
+
+(claim fzero
+  (∏ ((n Nat))
+    (Fin (add1 n))))
+(define fzero
+  (λ (n)
+    (nothing (Fin n))))
+
+(claim fadd1
+  (∏ ((n Nat))
+    (-> (Fin n)
+        (Fin (add1 n)))))
+(define fadd1
+  (λ (n)
+    (λ (i-1)
+      (just (Fin n) i-1))))
+
+(claim vec-ref
+  (∏ ((E U) (l Nat))
+    (-> (Fin l) (Vec E l)
+        E)))
+(claim base-vec-ref
+  (∏ ((E U))
+    (-> (Fin zero) (Vec E zero)
+        E)))
+(define base-vec-ref
+  (λ (E)
+    (λ (no-value-ever es)
+      (ind-Absurd no-value-ever
+        E))))
+(claim step-vec-ref
+  (∏ ((E U) (l-1 Nat))
+    (-> (-> (Fin l-1) (Vec E l-1)
+            E)
+        (-> (Fin (add1 l-1)) (Vec E (add1 l-1))
+            E))))
+(define step-vec-ref
+  (λ (E l-1)
+    (λ (vec-ref_l-1)
+      (λ (i es)
+        (ind-Either i
+          (λ (i)
+            E)
+          (λ (i-1)
+            (vec-ref_l-1 i-1 (tail es)))
+          (λ (triv)
+            (head es)))))))
+(define vec-ref
+  (λ (E l)
+    (ind-Nat l
+      (λ (k)
+        (-> (Fin k) (Vec E k)
+            E))
+      (base-vec-ref E)
+      (step-vec-ref E))))
+      

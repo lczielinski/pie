@@ -1,0 +1,70 @@
+#lang pie
+
+(claim reverse
+  (∏ ((E U))
+    (-> (List E)
+        (List E))))
+(claim reverse-help
+  (∏ ((E U))
+    (-> (List E)
+        (-> (List E)
+            (List E)))))
+(claim step-reverse-list
+  (∏ ((E U))
+    (-> E (List E) (-> (List E) (List E))
+        (-> (List E) (List E)))))
+(define step-reverse-list
+  (λ (E x xs fxs)
+    (λ (ys)
+      (fxs (:: x ys)))))
+(define reverse-help
+  (λ (E xs)
+    (rec-List xs
+      (λ (ys) ys)
+      (step-reverse-list E))))
+(define reverse
+  (λ (E es)
+    (reverse-help E es nil)))
+
+(reverse Nat (:: 1 (:: 2 (:: 3 nil))))
+
+(claim + (-> Nat Nat Nat))
+(claim step-+ (-> Nat Nat))
+(define step-+
+  (λ (n)
+    (add1 n)))
+(define +
+  (λ (m n)
+    (iter-Nat m n step-+)))
+
+(claim append-Vec
+  (∏ ((E U) (k Nat) (l Nat))
+    (-> (Vec E k)
+        (Vec E l)
+        (Vec E (+ k l)))))
+(define append-Vec
+  TODO)
+
+(claim snoc-Vec
+  (∏ ((E U) (n Nat))
+    (-> (Vec E n) E (Vec E (add1 n)))))
+
+(claim almost-snoc-Vec
+  (∏ ((E U) (n Nat))
+    (-> (Vec E n) E (Vec E (+ n 1)))))
+(define almost-snoc-Vec
+  (λ (E k vk e)
+    (append-Vec E k 1 vk (vec:: e vecnil))))
+
+(claim k+1=1+k
+  (∏ ((k Nat))
+    (= Nat (+ k 1) (+ 1 k))))
+(define k+1=1+k
+  TODO)
+
+(define snoc-Vec
+  (λ (E k vk e)
+    (replace (k+1=1+k k)
+      (λ (z) (Vec E z))
+      (almost-snoc-Vec E k vk e))))
+      

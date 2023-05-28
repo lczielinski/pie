@@ -1,0 +1,107 @@
+#lang pie
+
+(claim step-+ (-> Nat Nat))
+(define step-+ (λ (x) (add1 x)))
+
+(claim + (-> Nat Nat Nat))
+(define +
+  (λ (m n)
+    (iter-Nat m
+      n
+      step-+)))
+
+(claim double
+  (-> Nat
+      Nat))
+(define double
+  (λ (n)
+    (iter-Nat n
+      0
+      (+ 2))))
+
+(claim Even
+  (-> Nat
+      U))
+(define Even
+  (λ (n)
+    (Sigma ((half Nat))
+      (= Nat n (double half)))))
+
+(claim Odd
+  (-> Nat
+      U))
+(define Odd
+  (λ (n)
+    (Sigma ((haf Nat))
+      (= Nat n (add1 (double haf))))))
+
+(claim zero-is-even
+  (Even 0))
+(define zero-is-even
+  (cons 0
+    (same 0)))
+
+(claim add1-even->odd
+  (∏ ((n Nat))
+    (-> (Even n)
+        (Odd (add1 n)))))
+(define add1-even->odd
+  (λ (n en)
+    (cons (car en)
+      (cong (cdr en) (+ 1)))))
+
+(claim add1-odd->even
+  (∏ ((n Nat))
+    (-> (Odd n)
+        (Even (add1 n)))))
+(define add1-odd->even
+  (λ (n on)
+    (cons (add1 (car on))
+      (cong (cdr on) (+ 1)))))
+
+(claim either
+  (∏ ((A U) (B U) (C U))
+    (-> (Either A B)
+        (-> A C)
+        (-> B C)
+        C)))
+
+(define either
+  (λ (A B C either-A-B left-f right-f)
+    (ind-Either either-A-B
+      (λ (_) C)
+      left-f
+      right-f)))
+
+(claim even-or-odd
+  (∏ ((n Nat))
+    (Either (Even n) (Odd n))))
+(claim mot-even-or-odd
+  (-> Nat
+      U))
+(define mot-even-or-odd
+  (λ (k)
+    (Either (Even k) (Odd k))))
+(claim step-even-or-odd
+  (∏ ((n-1 Nat))
+    (-> (mot-even-or-odd n-1)
+        (mot-even-or-odd (add1 n-1)))))
+(define step-even-or-odd
+  (λ (n-1)
+    (λ (e-or-o_n-1)
+      (ind-Either e-or-o_n-1
+        (λ (e-or-o)
+          (mot-even-or-odd (add1 n-1)))
+        (λ (e_n-1)
+          (right
+            (add1-even->odd n-1 e_n-1)))
+        (λ (o_n-1)
+          (left
+            (add1-odd->even n-1 o_n-1)))))))
+(define even-or-odd
+  (λ (n)
+    (ind-Nat n
+      mot-even-or-odd
+      (left zero-is-even)
+      step-even-or-odd)))
+        

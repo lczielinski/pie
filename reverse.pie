@@ -1,0 +1,40 @@
+#lang pie
+
+(claim compose
+  (Pi ((A U) (B U) (C U))
+    (-> (-> B C)
+        (-> A B)
+        A
+        C)))
+(define compose
+  (λ (A B C f g a)
+    (f (g a))))
+
+(claim list::
+  (Pi ((E U))
+    (-> E (List E) (List E))))
+(define list::
+  (λ (E e es)
+    (:: e es)))
+
+(claim reverse-help
+  (Pi ((E U))
+    (-> (List E)
+        (-> (List E)
+            (List E)))))
+(define reverse-help
+  (λ (E l1)
+    (rec-List l1
+      (the (-> (List E) (List E)) (λ (l2) l2))
+      (λ (e es acc)
+        (compose (List E) (List E) (List E)
+          acc
+          (list:: E e))))))
+
+(claim reverse
+  (Pi ((E U))
+    (-> (List E)
+        (List E))))
+(define reverse
+  (λ (E l)
+    (reverse-help E l nil)))

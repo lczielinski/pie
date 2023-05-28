@@ -1,0 +1,38 @@
+#lang pie
+
+(claim first
+  (∏ ((E U)
+      (l Nat))
+    (-> (Vec E (add1 l))
+        E)))
+(define first
+  (λ (E l)
+    (λ (es)
+      (head es))))
+
+(claim rest
+  (∏ ((E U)
+      (l Nat))
+    (-> (Vec E (add1 l))
+        (Vec E l))))
+(define rest
+  (λ (E l)
+    (λ (es)
+      (tail es))))
+
+(claim second
+  (∏ ((E U)
+      (l Nat))
+    (-> (Vec E (add1 (add1 l)))
+        E)))
+(define second
+  (λ (E l)
+    (λ (es)
+      (head (tail es)))))
+
+(claim nth
+  (∏ ((E U)
+      (n Nat)
+      (l Nat))
+    (-> (Vec E (+ n (add1 l)))
+        E)))

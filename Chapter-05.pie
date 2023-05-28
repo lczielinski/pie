@@ -1,0 +1,116 @@
+#lang pie
+
+(claim rugbrod (List Atom))
+(define rugbrod
+  (:: 'flour
+    (:: 'salt nil)))
+
+(claim length
+  (Pi ((E U))
+    (-> (List E)
+      Nat)))
+
+(claim step-length
+  (Pi ((E U))
+    (-> E (List E) Nat Nat)))
+
+(define step-length
+  (λ (E e es l)
+    (add1 l)))
+
+(define length
+  (λ (E l)
+    (rec-List l
+      0
+      (step-length E))))
+
+(claim length-Atom
+  (-> (List Atom)
+      Nat))
+(define length-Atom
+  (length Atom))
+
+(claim append
+  (∏ ((E U))
+    (-> (List E) (List E)
+        (List E))))
+
+(claim step-append
+  (∏ ((E U))
+    (-> E (List E) (List E)
+        (List E))))
+(define step-append
+  (λ (E)
+    (λ (e es append_es)
+      (:: e append_es))))
+
+(define append
+  (λ (E)
+    (λ (start end)
+    (rec-List start
+      end
+      (step-append E)))))
+
+(claim snoc
+  (∏ ((E U))
+    (-> (List E) E
+        (List E))))
+(define snoc
+  (λ (E)
+    (λ (start e)
+      (append E start (:: e nil)))))
+
+#| (define snoc
+  (λ (E)
+    (λ (start e)
+      (rec-List start
+        (:: e nil)
+        (step-append E))))) |#
+
+(claim reverse
+  (∏ ((E U))
+    (-> (List E)
+        (List E))))
+(claim step-reverse
+  (∏ ((E U))
+    (-> E (List E) (List E)
+        (List E))))
+(define step-reverse
+  (λ (E)
+    (λ (e es reverse_es)
+      (snoc E reverse_es e))))
+(define reverse
+  (λ (E)
+    (λ (es)
+      (rec-List es
+        (the (List E) nil)
+        (step-reverse E)))))
+
+(claim concat
+  (∏ ((E U))
+    (-> (List (List E))
+        (List E))))
+
+(claim step-concat
+  (∏ ((E U))
+    (-> (List E) (List (List E)) (List E)
+        (List E))))
+
+(define step-concat
+  (λ (E)
+    (λ (e es concat-es)
+      (append E e concat-es))))
+
+(define concat
+  (λ (E)
+    (λ (l)
+      (rec-List l
+        (the (List E) nil)
+        (step-concat E)))))
+
+(claim test-input (List (List Atom)))
+(define test-input
+  (:: (:: 'A (:: 'B nil))
+    (:: (:: 'C (:: 'D (:: 'E nil)))
+      (:: (:: 'F nil) nil))))
+    

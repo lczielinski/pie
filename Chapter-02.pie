@@ -1,0 +1,71 @@
+#lang pie
+
+(claim vegetables
+  (Pair Atom Atom))
+(define vegetables
+  (cons 'celery 'carrot))
+
+(claim step-+ (-> Nat Nat))
+(define step-+ (λ (x) (add1 x)))
+
+(claim + (-> Nat Nat Nat))
+(define +
+  (λ (m n)
+    (iter-Nat m
+      n
+      step-+)))
+
+(claim pair-of-types (Pair U U))
+(define pair-of-types (cons Atom Atom))
+
+(claim Pear U)
+(define Pear (Pair Nat Nat))
+
+(claim Pear-maker U)
+(define Pear-maker
+  (-> Nat Nat Pear))
+
+(claim elim-Pear
+  (-> Pear Pear-maker Pear))
+(define elim-Pear
+  (λ (pear maker)
+    (maker (car pear) (cdr pear))))
+
+(claim pear+-help (-> Pear Nat Nat Pear))
+(define pear+-help
+  (λ (bosc a1 d1)
+    (elim-Pear bosc
+      (λ (a2 d2)
+        (cons (+ a1 a2)
+          (+ d1 d2))))))
+
+(claim pear+ (-> Pear Pear Pear))
+(define pear+
+  (λ (anjou bosc)
+    (elim-Pear anjou
+      (pear+-help bosc))))
+
+(claim Tripel U)
+(define Tripel (Pair Pear Nat))
+
+(claim Tripel-maker U)
+(define Tripel-maker
+  (-> Nat Nat Nat Tripel))
+
+(claim elim-Tripel
+  (-> Tripel Tripel-maker Tripel))
+(define elim-Tripel
+  (λ (tripel maker)
+    (maker (car (car tripel))
+      (cdr (car tripel)) (cdr tripel))))
+
+(claim tripel+ (-> Tripel Tripel Tripel))
+(define tripel+
+  (λ (t1 t2)
+    (elim-Tripel t1
+      (λ (a1 b1 c1)
+        (elim-Tripel t2
+          (λ (a2 b2 c2)
+            (cons (cons (+ a1 a2) (+ b1 b2))
+              (+ c1 c2))))))))
+            

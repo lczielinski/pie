@@ -1,0 +1,75 @@
+#lang pie
+
+(claim GVec
+    (-> U U))
+(define GVec
+  (λ (E)
+    (Sigma ((n Nat))
+      (Vec E n))))
+
+(claim length
+  (Pi ((E U))
+    (-> (List E)
+      Nat)))
+(claim step-length
+  (Pi ((E U))
+    (-> E (List E) Nat Nat)))
+(define step-length
+  (λ (E e es l)
+    (add1 l)))
+(define length
+  (λ (E l)
+    (rec-List l
+      0
+      (step-length E))))
+
+(claim list-to-vec
+  (∏ ((E U) (es (List E)))
+    (Vec E (length E es))))
+(claim mot-list-to-vec
+  (∏ ((E U))
+    (-> (List E)
+        U)))
+(define mot-list-to-vec
+  (λ (E)
+    (λ (es)
+      (Vec E (length E es)))))
+(claim step-list-to-vec
+  (∏ ((E U) (e E) (es (List E)))
+    (-> (mot-list-to-vec E es)
+        (mot-list-to-vec E (:: e es)))))
+(define step-list-to-vec
+  (λ (E e es)
+    (λ (list-to-vec_es)
+      (vec:: e list-to-vec_es))))
+(define list-to-vec
+  (λ (E es)
+      (ind-List es
+        (mot-list-to-vec E)
+        vecnil
+        (step-list-to-vec E))))
+
+(claim replicate
+  (∏ ((E U) (l Nat))
+    (-> E (Vec E l))))
+(claim mot-replicate
+  (-> U Nat
+      U))
+(define mot-replicate
+  (λ (E k)
+    (Vec E k)))
+(claim step-replicate
+  (∏ ((E U) (e E) (l-1 Nat))
+    (-> (mot-replicate E l-1)
+        (mot-replicate E (add1 l-1)))))
+(define step-replicate
+  (λ (E e l-1)
+    (λ (step-replicate_l-1)
+      (vec:: e step-replicate_l-1))))
+(define replicate
+  (λ (E l)
+    (λ (e)
+      (ind-Nat l
+        (mot-replicate E)
+        vecnil
+        (step-replicate E e)))))

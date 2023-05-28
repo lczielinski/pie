@@ -1,0 +1,464 @@
+#lang pie
+
+;;; Arithmetic
+
+;;; +
+;;; add two Nats
+
+(claim +
+  (-> Nat Nat Nat))
+
+(claim step-+
+  (-> Nat Nat))
+
+(define step-+
+  (λ (c)
+    (add1 c)))
+
+(define +
+  (λ (a b)
+    (iter-Nat a
+      b
+      step-+)))
+ 
+;;; +0=
+
+(claim +0=
+  (Pi ((a Nat))
+    (= Nat a (+ a 0))))
+
+(claim mot-+0=
+  (-> Nat U))
+
+(define mot-+0=
+  (λ (a)
+    (= Nat
+      a
+      (+ a 0))))
+
+(claim base-+0=
+  (mot-+0= 0))
+
+(define base-+0=
+  (same 0))
+
+(claim step-+0=
+  (Pi ((a Nat))
+    (-> (mot-+0= a)
+      (mot-+0= (add1 a)))))
+      
+(define step-+0=
+  (λ (a induction-hypothesis)
+    (cong induction-hypothesis (+ 1))))
+
+(define +0=
+  (λ (a)
+    (ind-Nat a
+      mot-+0=
+      base-+0=
+      step-+0=)))
+
+;;; add1+=+add1
+
+(claim add1+=+add1
+  (Pi ((a Nat)
+       (b Nat))
+    (= Nat
+       (add1 (+ a b))
+       (+ a (add1 b)))))
+
+(claim mot-add1+=+add1
+  (-> Nat U))
+
+(define mot-add1+=+add1
+  (λ (a)
+    (Pi ((b Nat))
+      (= Nat
+         (add1 (+ a b))
+         (+ a (add1 b))))))
+
+(claim base-add1+=+add1
+  (mot-add1+=+add1 0))
+
+(define base-add1+=+add1
+  (λ (b)
+    (same (add1 b))))
+
+(claim step-add1+=+add1
+  (Pi ((a Nat))
+    (-> (mot-add1+=+add1 a)
+      (mot-add1+=+add1 (add1 a)))))
+
+(define step-add1+=+add1
+  (λ (a induction-hypothesis b)
+    (cong (induction-hypothesis b)
+      (+ 1))))
+
+(define add1+=+add1
+  (λ (a)
+    (ind-Nat a
+      mot-add1+=+add1
+      base-add1+=+add1
+      step-add1+=+add1)))
+
+;;; comm+
+
+(claim comm+
+  (Pi ((a Nat)
+       (b Nat))
+    (= Nat
+       (+ a b)
+       (+ b a))))
+
+(claim mot-comm+
+  (-> Nat U))
+
+(define mot-comm+
+  (λ (a)
+    (Pi ((b Nat))
+      (= Nat
+         (+ a b)
+         (+ b a)))))
+
+(claim base-comm+
+  (mot-comm+ 0))
+
+(define base-comm+
+  (λ (b)
+    (+0= b)))
+
+(claim step-comm+
+  (Pi ((a Nat))
+    (-> (mot-comm+ a)
+      (mot-comm+ (add1 a)))))
+
+(define step-comm+
+  (λ (a induction-hypothesis b)
+    (replace (symm (induction-hypothesis b))
+      (λ (k) (= Nat (add1 k) (+ b (add1 a))))
+      (add1+=+add1 b a))))
+
+(define comm+
+  (λ (a)
+    (ind-Nat a
+      mot-comm+
+      base-comm+
+      step-comm+)))
+
+;;; assoc+
+
+(claim assoc+
+  (Pi ((a Nat)
+       (b Nat)
+       (c Nat))
+    (= Nat
+       (+ a (+ b c))
+       (+ (+ a b) c))))
+
+(claim mot-assoc+
+  (-> Nat U))
+
+(define mot-assoc+
+  (λ (a)
+    (Pi ((b Nat)
+         (c Nat))
+      (= Nat
+         (+ a (+ b c))
+         (+ (+ a b) c)))))
+
+(claim base-assoc+
+  (mot-assoc+ 0))
+
+(define base-assoc+
+  (λ (b c)
+    (same (+ b c))))
+
+(claim step-assoc+
+  (Pi ((a Nat))
+    (-> (mot-assoc+ a)
+      (mot-assoc+ (add1 a)))))
+
+(define step-assoc+
+  (λ (a induction-hypothesis b c)
+    (cong (induction-hypothesis b c)
+      (+ 1))))
+
+(define assoc+
+  (λ (a)
+    (ind-Nat a
+      mot-assoc+
+      base-assoc+
+      step-assoc+)))
+
+(claim assoc-flip
+  (Pi ((a Nat)
+       (b Nat)
+       (c Nat))
+    (= Nat
+       (+ a (+ b c))
+       (+ b (+ a c)))))
+
+(define assoc-flip
+  (λ (a b c)
+    (trans (assoc+ a b c)
+      (trans (cong (comm+ a b)
+               (the (-> Nat Nat)
+                 (λ (z) (+ z c))))
+        (symm (assoc+ b a c))))))
+
+;;; *
+
+(claim *
+  (-> Nat Nat Nat))
+
+(define *
+  (λ (a b)
+    (iter-Nat a
+      0
+      (+ b))))
+
+;;; *0=0
+
+(claim *0=0
+  (Pi ((a Nat))
+    (= Nat
+       0
+       (* a 0))))
+
+(claim mot-*0=0
+  (-> Nat U))
+
+(define mot-*0=0
+  (λ (a)
+    (= Nat
+      0
+      (* a 0))))
+
+(claim base-*0=0
+  (mot-*0=0 0))
+
+(define base-*0=0
+  (same 0))
+
+(claim step-*0=0
+  (Pi ((a Nat))
+    (-> (mot-*0=0 a)
+      (mot-*0=0 (add1 a)))))
+
+(define step-*0=0
+  (λ (a induction-hypothesis)
+    induction-hypothesis))
+
+(define *0=0
+  (λ (a)
+    (ind-Nat a
+      mot-*0=0
+      base-*0=0
+      step-*0=0)))
+
+;;; *add1=+*
+
+(claim *add1=+*
+  (Pi ((a Nat)
+       (b Nat))
+    (= Nat
+       (+ a (* a b))
+       (* a (add1 b)))))
+
+(claim mot-*add1=+*
+  (-> Nat U))
+
+(define mot-*add1=+*
+  (λ (a)
+    (Pi ((b Nat))
+      (= Nat
+         (+ a (* a b))
+         (* a (add1 b))))))
+
+(claim base-*add1=+*
+  (mot-*add1=+* 0))
+
+(define base-*add1=+*
+  (λ (b)
+    (same 0)))
+
+(claim step-*add1=+*
+  (Pi ((a Nat))
+    (-> (mot-*add1=+* a)
+      (mot-*add1=+* (add1 a)))))
+
+(define step-*add1=+*
+  (λ (a induction-hypothesis b)
+    (trans
+      (cong (assoc-flip a b (* a b))
+        (+ 1))
+      (cong (induction-hypothesis b)
+        (the (-> Nat Nat)
+          (λ (z) (add1 (+ b z))))))))
+
+(define *add1=+*
+  (λ (a)
+    (ind-Nat a
+      mot-*add1=+*
+      base-*add1=+*
+      step-*add1=+*)))
+
+;;; comm*
+;;;
+;;; Multiplication is commutative
+
+(claim comm*
+  (Pi ((a Nat)
+       (b Nat))
+    (= Nat (* a b)
+       (* b a))))
+
+(claim mot-comm*
+  (-> Nat U))
+
+(define mot-comm*
+  (λ (a)
+    (Pi ((b Nat))
+      (= Nat (* a b) (* b a)))))
+
+(claim base-comm*
+  (mot-comm* 0))
+
+(define base-comm*
+  (λ (b)
+    (*0=0 b)))
+
+(claim step-comm*
+  (Pi ((a Nat))
+    (-> (mot-comm* a)
+      (mot-comm* (add1 a)))))
+
+(define step-comm*
+  (λ (a induction-hypothesis b)
+    (trans
+      (cong (induction-hypothesis b)
+        (+ b))
+      (*add1=+* b a))))
+
+(define comm*
+  (λ (a)
+    (ind-Nat a
+      mot-comm*
+      base-comm*
+      step-comm*)))
+
+;;; distr+*
+
+(claim distr+*
+  (Pi ((a Nat)
+       (b Nat)
+       (c Nat))
+    (= Nat
+       (* (+ a b) c)
+       (+ (* a c) (* b c)))))
+
+(claim mot-distr+*
+  (-> Nat U))
+
+(define mot-distr+*
+  (λ (a)
+    (Pi ((b Nat)
+         (c Nat))
+      (= Nat
+         (* (+ a b) c)
+         (+ (* a c) (* b c))))))
+
+(claim base-distr+*
+  (mot-distr+* 0))
+
+(define base-distr+*
+  (λ (b c)
+    (same (* b c))))
+
+(claim step-distr+*
+  (Pi ((a Nat))
+    (-> (mot-distr+* a)
+      (mot-distr+* (add1 a)))))
+
+(define step-distr+*
+  (λ (a inductive-hypothesis b c)
+    (trans
+      (cong (inductive-hypothesis b c)
+             (+ c))
+      (assoc+ c (* a c) (* b c)))))
+
+(define distr+*
+  (λ (a)
+    (ind-Nat a
+      mot-distr+*
+      base-distr+*
+      step-distr+*)))
+
+;;; distr*+
+
+(claim distr*+
+  (Pi ((a Nat)
+       (b Nat)
+       (c Nat))
+    (= Nat
+       (* a (+ b c))
+       (+ (* a b) (* a c)))))
+
+(define distr*+
+  (λ (a b c)
+    (trans (comm* a (+ b c))
+      (trans (distr+* b c a)
+        (trans (cong (comm* b a)
+                 (the (-> Nat Nat)
+                   (λ (z) (+ z (* c a)))))
+          (cong (comm* c a)
+            (the (-> Nat Nat)
+              (λ (z) (+ (* a b) z)))))))))
+
+;;; assoc*
+;;; multiplication of Nats is associative
+
+(claim assoc*
+  (Pi ((a Nat)
+       (b Nat)
+       (c Nat))
+    (= Nat
+       (* a (* b c))
+       (* (* a b) c))))
+
+(claim mot-assoc*
+  (-> Nat U))
+
+(define mot-assoc*
+  (λ (a)
+    (Pi ((b Nat)
+         (c Nat))
+      (= Nat
+         (* a (* b c))
+         (* (* a b) c)))))
+
+(claim base-assoc*
+  (mot-assoc* 0))
+
+(define base-assoc*
+  (λ (b c)
+    (same 0)))
+
+(claim step-assoc*
+  (Pi ((a Nat))
+    (-> (mot-assoc* a)
+      (mot-assoc* (add1 a)))))
+
+(define step-assoc*
+  (λ (a inductive-hypothesis b c)
+    (trans
+      (cong (inductive-hypothesis b c)
+             (+ (* b c)))
+      (symm (distr+* b (* a b) c)))))
+
+(define assoc*
+  (λ (a)
+    (ind-Nat a
+      mot-assoc*
+      base-assoc*
+      step-assoc*)))
